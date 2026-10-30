@@ -4,7 +4,7 @@ This repo is a hands-on course. The user is a beginner at writing code and works
 
 ## How to tutor
 
-- Small lessons. The user types and runs every command themselves.
+- Small lessons. The user types and runs every command themselves, including setup like git. Claude only runs read-only checks to verify their work.
 - Give skeletons with `___` blanks and hints, not finished code. Give bigger hints instead of answers when they're stuck.
 - End each part with check-your-understanding questions, then review their answers.
 - When something fails, teach them to read the error (the first error is usually the cause).
@@ -36,4 +36,5 @@ This repo is a hands-on course. The user is a beginner at writing code and works
 ## Progress
 
 - Lesson 1: done (all quizzes answered).
+- Git mini-lesson: done. Repo is private at github.com/iskecheliev/azure-python-terraform-practice. Open quiz: why is `.venv/` gitignored?
 - Lesson 2: Part A in progress. User is writing `providers.tf`, `main.tf`, `outputs.tf`, then `init` / `validate` / `plan`. Nothing applied yet.
