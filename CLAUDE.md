@@ -36,5 +36,7 @@ This repo is a hands-on course. The user is a beginner at writing code and works
 ## Progress
 
 - Lesson 1: done (all quizzes answered).
-- Git mini-lesson: done. Repo is private at github.com/iskecheliev/azure-python-terraform-practice. Open quiz: why is `.venv/` gitignored?
-- Lesson 2: Part A in progress. User is writing `providers.tf`, `main.tf`, `outputs.tf`, then `init` / `validate` / `plan`. Nothing applied yet.
+- Git mini-lesson: done. Repo is private at github.com/iskecheliev/azure-python-terraform-practice. Quiz answered.
+- Lesson 2: Part A in progress. `providers.tf` (azurerm ~> 5.0, random ~> 3.9) and `main.tf` (RG, random suffix, storage, container) are done and reviewed. Next: `init` / `validate` / `plan`, then `outputs.tf`. Nothing applied yet. Reviewed `~>` (user first thought `~> 5.12` allows 5.0).
+- Always check the Terraform Registry for current provider versions; don't rely on memory (azurerm is 5.x as of Oct 2026).
+- Second Mac: run `az account set --subscription "Visual Studio Enterprise Subscription-Prod"`. Its default subscription was a work one.
