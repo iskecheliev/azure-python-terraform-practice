@@ -1,0 +1,18 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Terraform: plugins (re-downloaded by `terraform init`)
+.terraform/
+
+# Terraform state: lists everything Terraform created and can contain secrets.
+# Never commit it. (Lesson 7 moves state to Azure so both devices share it.)
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+*.tfplan
+
+# Mac
+.DS_Store
