@@ -1,4 +1,12 @@
 terraform {
+  backend "azurerm" {
+    resource_group_name  = "rg-tfstate-practice"
+    storage_account_name = "stpracticetfstate48213"
+    container_name       = "tfstate"
+    key                  = "lesson2.tfstate"
+
+    use_azuread_auth = true
+  }
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm" # hint: the company that makes Terraform
