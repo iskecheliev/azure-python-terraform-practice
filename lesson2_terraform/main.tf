@@ -26,3 +26,13 @@ resource "azurerm_storage_container" "uploads" {
   storage_account_id    = azurerm_storage_account.st.id
   container_access_type = "private"
 }
+
+# Who am I? (reads, doesn't create)
+data "azurerm_client_config" "current" {}
+
+# 5. Give myself the blob data role on the Terraform storage account
+resource "azurerm_role_assignment" "me_blob" {
+  scope                = azurerm_storage_account.st.id                # blank 3
+  role_definition_name = "Storage Blob Data Contributor"              # blank 4
+  principal_id         = data.azurerm_client_config.current.object_id # blank 5
+}
