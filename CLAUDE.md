@@ -50,7 +50,7 @@ Lesson types: numbered = Python SDK (data plane, AI-200) + Terraform (management
 ## Azure resources
 
 - Subscription: Visual Studio Enterprise Subscription-Prod (`az login` on each device).
-- Lesson 1 (made with CLI): RG `rg-prd-sdk-practice` (westeurope), storage `stpractice16407`, container `uploads`. To be deleted in Lesson 2 Part B.
+- Lesson 1 (made with CLI): RG `rg-prd-sdk-practice`. Deleted 2 Nov 2026.
 - Lesson 2 (Terraform): RG `rg-tf-sdk-practice`, storage `sttfpractice<random>`.
 - **Never practice in `rg-terraform-state` / `sttfstateprod7d19ba`.** It holds real Terraform state.
 
@@ -74,6 +74,6 @@ Lesson types: numbered = Python SDK (data plane, AI-200) + Terraform (management
   4. On the Mac mini: `git pull`, `terraform init`, `plan` says No changes.
   Then resume Lesson 2 Part B. Lesson 7 later only needs modules (plus a quick review).
   - ALL DONE 2 Nov: Mac mini `plan` said No changes (state lock seen). Remote state works; `plan`/`apply` are now safe on either Mac (ignore older "Air only" notes above). Quiz: user knew `providers.tf` points to the state; wrongly thought losing the Blob Data role would fall back to keys (taught: `use_azuread_auth = true` means it fails with 403, and fails safely instead of recreating).
-- Lesson 2 Part B (2 Nov, Mac mini): `lesson2_python/lesson2_blob.py` got 403 AuthorizationPermissionMismatch, user added `azurerm_role_assignment.me_blob` + `data.azurerm_client_config` (all blanks right), plan 1 to add, applied, script now uploads `hello_tf.txt`. Taught: DefaultAzureCredential never falls back to keys (repeat misconception, watch for it). Still open: the user's plan prediction, and the line number/status code from the first traceback. Next: delete `rg-prd-sdk-practice`, commit + push, then D1.
+- Lesson 2 Part B (2 Nov, Mac mini): `lesson2_python/lesson2_blob.py` got 403 AuthorizationPermissionMismatch, user added `azurerm_role_assignment.me_blob` + `data.azurerm_client_config` (all blanks right), plan 1 to add, applied, script now uploads `hello_tf.txt`. Taught: DefaultAzureCredential never falls back to keys (repeat misconception, watch for it). Still open: the user's plan prediction, and the line number/status code from the first traceback. Old RG deleted, pushed. **Lesson 2 DONE.** User knew why `az` (not `terraform destroy`) deletes CLI-made resources. Next: D1.
 - Always check the Terraform Registry for current provider versions; don't rely on memory (azurerm is 5.x as of Oct 2026).
 - Second Mac: run `az account set --subscription "Visual Studio Enterprise Subscription-Prod"`. Its default subscription was a work one.
