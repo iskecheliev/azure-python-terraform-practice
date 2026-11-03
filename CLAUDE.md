@@ -57,12 +57,27 @@ Lesson types: numbered = Python SDK (data plane, AI-200) + Terraform (management
 ## Two-device setup
 
 - New device: `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`, then `az login`.
-- Terraform state is local and not in git. Until Lesson 7, run `terraform apply`/`destroy` for a lesson on one device only.
+- Terraform state is remote (`stpracticetfstate48213`, never in git), so `plan`/`apply` work on either Mac. Run `terraform init` in each Terraform folder on a new device.
+- Set the GitHub noreply email on each Mac: `git config --global user.email "191218033+iskecheliev@users.noreply.github.com"`.
+
+## Git workflow (since D2: `main` is protected)
+
+The repo is public, and the ruleset `protect-main` blocks direct pushes to `main` (GH013). Every change, notes included, goes through a branch and a PR:
+
+1. Start fresh: `git switch main`, `git pull`.
+2. Branch: `git switch -c <type>/<short-name>`. Prefixes: `feature/`, `fix/`, `docs/`. Uncommitted changes move to the new branch with you.
+3. Work: edit, `git add`, `git status` (check before every commit), `git commit`. Add `AB#<id>` to link a work item.
+4. Push the branch: `git push -u origin <branch>`.
+5. On GitHub: Compare & pull request. Put `Fixes AB#<id>` in the **description** (not the title) to close the work item on merge. Squash and merge, then delete the branch.
+6. Finish: `git switch main`, `git pull`, `git branch -D <branch>` (`-d` refuses after a squash; use `-D` only once the PR shows Merged).
+
+Never `git reset --hard` without running `git status` first: it throws away uncommitted changes.
+For Claude: edits to this file stay uncommitted until the user commits them through a PR. Remind them at the end of each session.
 
 ## Progress
 
 - Lesson 1: done (all quizzes answered).
-- Git mini-lesson: done. Repo is private at github.com/iskecheliev/azure-python-terraform-practice. Quiz answered.
+- Git mini-lesson: done. Repo at github.com/iskecheliev/azure-python-terraform-practice (public since 3 Nov 2026: never commit secrets). Quiz answered.
 - Lesson 2: Part A done. Applied 30 Oct 2026 **from the Air Mac** (state lives there): storage `sttfpractice6epyt1` + container `uploads`. Quiz answered; weak spots were what `init` does and what goes wrong if state is lost (name clash). GRS plan experiment set (plan only, then revert).
 - 2 Nov 2026: user moved to the Mac mini. Not started yet: the GRS plan experiment and Part B step 1 (`lesson2_python/` doesn't exist yet).
   - Lesson 2 Terraform state (`terraform.tfstate`) is on the **Air** only. On the mini, check whether `lesson2_terraform/terraform.tfstate` exists. If not, do the Python steps only there (they need no state; the account name is `sttfpractice6epyt1`). Do not run `plan`/`apply` there: Terraform would try to recreate everything.
@@ -76,6 +91,7 @@ Lesson types: numbered = Python SDK (data plane, AI-200) + Terraform (management
   - ALL DONE 2 Nov: Mac mini `plan` said No changes (state lock seen). Remote state works; `plan`/`apply` are now safe on either Mac (ignore older "Air only" notes above). Quiz: user knew `providers.tf` points to the state; wrongly thought losing the Blob Data role would fall back to keys (taught: `use_azuread_auth = true` means it fails with 403, and fails safely instead of recreating).
 - Lesson 2 Part B (2 Nov, Mac mini): `lesson2_python/lesson2_blob.py` got 403 AuthorizationPermissionMismatch, user added `azurerm_role_assignment.me_blob` + `data.azurerm_client_config` (all blanks right), plan 1 to add, applied, script now uploads `hello_tf.txt`. Taught: DefaultAzureCredential never falls back to keys (repeat misconception, watch for it). Still open: the user's plan prediction, and the line number/status code from the first traceback. Old RG deleted, pushed. **Lesson 2 DONE.** User knew why `az` (not `terraform destroy`) deletes CLI-made resources.
 - D1 (2-3 Nov, Mac mini): project `azure-practice-course` (Agile, private). Epic #2, Feature #3 "D1: Azure Boards", stories #4 (Closed), #5 (Active, linked to commit 56d6e62), #6 (Closed by commit cd28412 "Fixes AB#6"). Boards connected to the GitHub repo. CLI defaults set to org + project. Taught: `--type "User Story"`, capturing IDs in variables, case-sensitive `git add` on macOS, check `git status` before committing. Learned: in Agile, User Story "Resolved" is in the InProgress category, so `Fixes AB#` goes to Closed (Completed). Quiz weak spot: the *keyword* (`Fixes`) before `AB#` is what changes state, and only on the default branch. #3 and #5 closed, pushed (f54d4ea). **D1 DONE 3 Nov.** Epic #2 moved to Active.
-- D2 Part A (3 Nov, Mac mini): Feature #7 (still New, should be Active), Story #8 closed by PR #1 (`Fixes AB#8` in the description, squash merge, commit 68db94a). Branch `feature/readme-setup` deleted on GitHub and locally (`-d` refused after squash, used `-D`). Taught: merge commit vs squash vs rebase (diagrams), local vs remote branch copies, read the first word (`error:`). Quiz: Q1 missed "only on the default branch"; Q2 squash downside understood as "work might be lost" (corrected: the branch's step-by-step history is lost from `main`, not the work). GitHub Free + private repo = no branch protection (API 403). Part B choice pending: Azure Repos branch policy / make repo public / GitHub Pro.
+- D2 Part A (3 Nov, Mac mini): Feature #7 (still New, should be Active), Story #8 closed by PR #1 (`Fixes AB#8` in the description, squash merge, commit 68db94a). Branch `feature/readme-setup` deleted on GitHub and locally (`-d` refused after squash, used `-D`). Taught: merge commit vs squash vs rebase (diagrams), local vs remote branch copies, read the first word (`error:`). Quiz: Q1 missed "only on the default branch"; Q2 squash downside understood as "work might be lost" (corrected: the branch's step-by-step history is lost from `main`, not the work). GitHub Free + private repo = no branch protection (API 403). 
+- D2 Part B (3 Nov, Mac mini): history scanned (no secrets), repo made **public**, commits now use the GitHub noreply email (set it on the Air too: an old Air commit used `...@Ivaylos-Laptop.local`). Ruleset `protect-main` (target default branch, no bypass, PR required with 0 approvals, squash only, block deletion + force push). First test passed through because the ruleset had no target branch (fixed); second direct push got GH013. Stuck commit moved to a branch, `reset --hard origin/main`, PR #2 squash-merged. The reset also wiped Claude's uncommitted CLAUDE.md notes (restored): a live example of why `reset --hard` is dangerous. README still has a test heading "New Line to test Protect-main -second try". Azure Repos branch policies not practiced hands-on: cover them in theory (an empty repo `azure-practice-course` exists in the project). Left: delete the remote branch `feature/remove-test-line`, Part B quiz, close #7. Next: D3.
 - Always check the Terraform Registry for current provider versions; don't rely on memory (azurerm is 5.x as of Oct 2026).
 - Second Mac: run `az account set --subscription "Visual Studio Enterprise Subscription-Prod"`. Its default subscription was a work one.
