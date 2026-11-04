@@ -1,0 +1,45 @@
+# Run on pushes to main
+trigger:
+  branches:
+    include:
+      - main
+
+# Run on PRs that target main
+pr:
+  branches:
+    include:
+      - main
+
+# Which agents may run this job
+pool:
+  name: Self-Hosted-Linux
+  demands:
+    - Agent.Name -equals hyper-v-dev-agent
+
+variables:
+  TF_VERSION: '1.12.2'
+
+steps:
+  - checkout: self
+
+  - script: |
+      curl -sSLo terraform.zip https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
+      python3 -m zipfile -e terraform.zip $(Agent.TempDirectory)/tf
+      chmod +x $(Agent.TempDirectory)/tf/terraform
+      echo "##vso[task.prependpath]$(Agent.TempDirectory)/tf"
+    displayName: 'Install Terraform $(TF_VERSION)'
+
+  - script: terraform version
+    displayName: 'Show Terraform version'
+
+  - script: terraform fmt -check -recursive
+    displayName: 'Terraform format check'
+
+  - script: |
+      terraform init -backend=false
+      terraform validate
+    workingDirectory: lesson2_terraform
+    displayName: 'Terraform validate'
+
+  - script: python3 -m py_compile lesson1_sdk_blob/*.py lesson2_python/*.py
+    displayName: 'Python syntax check'
