@@ -44,7 +44,7 @@ Lesson types: numbered = Python SDK (data plane, AI-200) + Terraform (management
 ## Azure DevOps
 
 - Org: https://dev.azure.com/iskecheliev. Existing projects: `My_First_Project`, `ai-document-processor` (the user's real project; don't touch it). Create a separate project for the course in D1.
-- Agent pool `Self-Hosted-Linux`: two online agents on the user's local server, `hyper-v-dev-agent` and `hyper-v-prd-agent` (Ubuntu 26.04, agent 4.272.0, Python 3). Terraform isn't installed on them: install it in the pipeline (or on the agents, as a lesson).
+- Agent pool `Self-Hosted-Linux`: two online agents on the user's local server, `hyper-v-dev-agent` and `hyper-v-prd-agent` (Ubuntu 26.04, agent 4.272.0, Python 3). Terraform v1.15.1 + unzip are installed on the `devops-prd` server (dev server not checked yet), but the agents' capability lists don't show them (scanned before the install; restart the agent service to refresh). The course pipeline still downloads a pinned Terraform (1.12.2, same as the Mac) so results don't depend on the server. Later: upgrade the Mac and pin one version in the Mac, the pipeline and `required_version`. Pool `Self-Hosted-Linux` has id 10. The dev agent also serves another project; the course pipeline uses `demands: Agent.Name -equals hyper-v-dev-agent` (user's choice, D3: keep practice off the prd agent).
 - `az devops` CLI extension is installed on the Mac mini.
 
 ## Azure resources
