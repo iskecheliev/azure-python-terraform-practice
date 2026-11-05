@@ -23,3 +23,10 @@ az account set --subscription "Visual Studio Enterprise Subscription-Prod" ## or
 ```
 
 ## New Line to test Protect-main -second try
+
+## CI
+
+Every pull request to `main` runs the `ci` pipeline in Azure Pipelines (self-hosted agent). It checks:
+- Terraform format check
+- Terraform validate
+- Python syntax check
