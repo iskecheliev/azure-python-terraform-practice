@@ -14,7 +14,7 @@ resource "random_string" "suffix" {
 # 3. Storage account
 resource "azurerm_storage_account" "st" {
   name                     = "sttfpractice${random_string.suffix.result}"
-  resource_group_name      = azurerm_resource_group.rg.name
+  resource_group_name      = azurerm_resource_group.rgg.name
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "LRS" # hint: cheapest option, 3 letters
