@@ -58,5 +58,6 @@ steps:
         export ARM_OIDC_TOKEN=$idToken
         export ARM_USE_OIDC=true
         export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+        export TF_VAR_blob_user_principal_id=$(blobUserPrincipalId)
         terraform init -input=false
         terraform plan -input=false
