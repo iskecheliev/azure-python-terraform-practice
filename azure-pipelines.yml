@@ -41,7 +41,7 @@ steps:
     workingDirectory: lesson2_terraform
     displayName: 'Terraform validate'
 
-  - script: python3 -m py_compile lesson1_sdk_blob/*.py lesson2_python/*.py
+  - script: python3 -m py_compile lesson1_sdk_blob/*.py lesson2_python/*.py lesson3_python/*.py
     displayName: 'Python syntax check'
 
   - task: AzureCLI@2
