@@ -1,7 +1,7 @@
 # 1. Resource group
 resource "azurerm_resource_group" "rg" {
   name     = "rg-tf-sdk-practice" # hint: CLAUDE.md, Lesson 2 RG name
-  location = "westeurope"         # hint: same region as Lesson 1
+  location = var.location         # hint: same region as Lesson 1
 }
 
 # 2. Random suffix for a unique storage name
@@ -27,12 +27,11 @@ resource "azurerm_storage_container" "uploads" {
   container_access_type = "private"
 }
 
-# Who am I? (reads, doesn't create)
-data "azurerm_client_config" "current" {}
+
 
 # 5. Give myself the blob data role on the Terraform storage account
 resource "azurerm_role_assignment" "me_blob" {
-  scope                = azurerm_storage_account.st.id                # blank 3
-  role_definition_name = "Storage Blob Data Contributor"              # blank 4
-  principal_id         = data.azurerm_client_config.current.object_id # blank 5
+  scope                = azurerm_storage_account.st.id   # blank 3
+  role_definition_name = "Storage Blob Data Contributor" # blank 4
+  principal_id         = var.blob_user_principal_id      # blank 5
 }
