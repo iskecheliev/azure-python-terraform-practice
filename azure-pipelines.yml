@@ -10,7 +10,7 @@ pr:
     include:
       - main
 
-# Which agents may run this job
+# Which agents may run the jobs (applies to every stage)
 pool:
   name: Self-Hosted-Linux
   demands:
@@ -19,45 +19,93 @@ pool:
 variables:
   TF_VERSION: '1.12.2'
 
-steps:
-  - checkout: self
+stages:
+  # ---------- Stage 1: checks + plan (PRs and main) ----------
+  - stage: Plan
+    displayName: 'Checks and plan'
+    jobs:
+      - job: plan
+        steps:
+          - checkout: self
 
-  - script: |
-      curl -sSLo terraform.zip https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
-      python3 -m zipfile -e terraform.zip $(Agent.TempDirectory)/tf
-      chmod +x $(Agent.TempDirectory)/tf/terraform
-      echo "##vso[task.prependpath]$(Agent.TempDirectory)/tf"
-    displayName: 'Install Terraform $(TF_VERSION)'
+          - script: |
+              curl -sSLo terraform.zip https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
+              python3 -m zipfile -e terraform.zip $(Agent.TempDirectory)/tf
+              chmod +x $(Agent.TempDirectory)/tf/terraform
+              echo "##vso[task.prependpath]$(Agent.TempDirectory)/tf"
+            displayName: 'Install Terraform $(TF_VERSION)'
 
-  - script: terraform version
-    displayName: 'Show Terraform version'
+          - script: terraform fmt -check -recursive
+            displayName: 'Terraform format check'
 
-  - script: terraform fmt -check -recursive
-    displayName: 'Terraform format check'
+          - script: |
+              terraform init -backend=false
+              terraform validate
+            workingDirectory: lesson2_terraform
+            displayName: 'Terraform validate'
 
-  - script: |
-      terraform init -backend=false
-      terraform validate
-    workingDirectory: lesson2_terraform
-    displayName: 'Terraform validate'
+          - script: python3 -m py_compile lesson1_sdk_blob/*.py lesson2_python/*.py lesson3_python/*.py
+            displayName: 'Python syntax check'
 
-  - script: python3 -m py_compile lesson1_sdk_blob/*.py lesson2_python/*.py lesson3_python/*.py
-    displayName: 'Python syntax check'
+          - task: AzureCLI@2
+            displayName: 'Terraform plan'
+            inputs:
+              azureSubscription: 'sc-azure-course'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              addSpnToEnvironment: true
+              workingDirectory: lesson2_terraform
+              inlineScript: |
+                export ARM_CLIENT_ID=$servicePrincipalId
+                export ARM_TENANT_ID=$tenantId
+                export ARM_OIDC_TOKEN=$idToken
+                export ARM_USE_OIDC=true
+                export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+                export TF_VAR_blob_user_principal_id=$(blobUserPrincipalId)
+                terraform init -input=false
+                terraform plan -input=false -out=tfplan          # hint: save the plan to a file named tfplan
 
-  - task: AzureCLI@2
-    displayName: 'Terraform plan'
-    inputs:
-      azureSubscription: 'sc-azure-course'          # hint: the service connection's name
-      scriptType: 'bash'
-      scriptLocation: 'inlineScript'
-      addSpnToEnvironment: true         # hands the identity's details to the script
-      workingDirectory: lesson2_terraform             # hint: same folder as the validate step
-      inlineScript: |
-        export ARM_CLIENT_ID=$servicePrincipalId
-        export ARM_TENANT_ID=$tenantId
-        export ARM_OIDC_TOKEN=$idToken
-        export ARM_USE_OIDC=true
-        export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
-        export TF_VAR_blob_user_principal_id=$(blobUserPrincipalId)
-        terraform init -input=false
-        terraform plan -input=false
+          - publish: lesson2_terraform/tfplan                # the file to save
+            artifact: tfplan                                    # hint: give the artifact the same name, tfplan
+            displayName: 'Publish plan'
+
+  # ---------- Stage 2: apply (main only, after approval) ----------
+  - stage: Apply
+    displayName: 'Apply (after approval)'
+    dependsOn: Plan                                           # hint: the stage name above (not its displayName)
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))   # hint: the full ref of main
+    jobs:
+      - deployment: apply
+        environment: practice-apply                                     # hint: the environment you made in Part A
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self                             # deployment jobs don't check out code by default
+
+                - download: current                          # artifacts from THIS run
+                  artifact: tfplan
+
+                - script: |
+                    curl -sSLo terraform.zip https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
+                    python3 -m zipfile -e terraform.zip $(Agent.TempDirectory)/tf
+                    chmod +x $(Agent.TempDirectory)/tf/terraform
+                    echo "##vso[task.prependpath]$(Agent.TempDirectory)/tf"
+                  displayName: 'Install Terraform $(TF_VERSION)'
+
+                - task: AzureCLI@2
+                  displayName: 'Terraform apply'
+                  inputs:
+                    azureSubscription: 'sc-azure-course'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    addSpnToEnvironment: true
+                    workingDirectory: $(Build.SourcesDirectory)/lesson2_terraform
+                    inlineScript: |
+                      export ARM_CLIENT_ID=$servicePrincipalId
+                      export ARM_TENANT_ID=$tenantId
+                      export ARM_OIDC_TOKEN=$idToken
+                      export ARM_USE_OIDC=true
+                      export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+                      terraform init -input=false
+                      terraform apply -input=false $(Pipeline.Workspace)/tfplan/tfplan    # hint: the command that makes changes
